@@ -1,0 +1,135 @@
+</html>
+<head>
+<style>
+svg {height:90%;}
+.txt { font: italic 5px serif; fill: black; }
+</style>
+</head>
+<body>
+<svg id="visulisation" viewBox= "-42 -42 92 122" style="background-color:black">
+</svg>
+<textarea id="program">G,R,B</textarea>
+<button onclick="runProg()">Run Program</button>
+<button onclick="transform('red',true)">Red</button>
+<button onclick="transform('green',true)">Green</button>
+<button onclick="transform('yellow',true)">Yellow</button>
+<button onclick="transform('white',true)">White</button>
+<button onclick="transform('blue',true)">Blue</button>
+<button onclick="transform('orange',true)">Orange</button>
+<button onclick="transform('orange',true)">Run Program</button>
+</body>
+<script>
+
+var svg = document.getElementById("visulisation");
+var f = {"red":0,"blue":1,"white":2,"green":3,"yellow":4,"orange":5}
+
+//only the transforms affecting other faces are added in the definition
+var transforms= {"red":   	[[44,33],[41,34],[38,35],
+							[33,18],[34,21],[35,24],
+							[18,11],[21,10],[24,9],
+							[11,44],[10,41],[9,38]],
+				"green":	[[51,20],[52,19],[53,18],
+							[20,2],[19,1],[18,0],
+							[2,38],[1,37],[0,36],
+							[38,51],[37,52],[36,53]],
+				"yellow":	[[27,0],[30,3],[33,6],
+							[0,9],[3,12],[6,15],
+							[9,45],[12,48],[15,51],
+						    [45,27],[48,30],[51,33]],
+				"white":	[[53,17],[50,14],[47,11],
+							[11,2],[14,5],[17,8],
+							[2,29],[5,32],[8,35],
+							[35,53],[32,50],[29,47]],
+				"blue":		[[47,42],[46,43],[45,44],
+							[42,6],[43,7],[44,8],
+							[6,24],[7,25],[8,26],
+							[24,47],[25,46],[26,45]],
+				"orange":   [[15,26],[16,23],[17,20],
+							[26,29],[23,28],[20,27],
+							[29,36],[28,39],[27,42],
+							[36,15],[39,16],[42,17]
+							]										
+				}
+
+Object.keys(transforms).forEach(k =>{
+[[0,2],[1,5],[2,8],[3,1],[5,7],[6,0],[7,3],[8,6]].forEach(t => {
+	transforms[k].push([t[0]+f[k]*9,t[1]+f[k]*9])
+	});
+});
+
+var faces = []
+Object.keys(f).forEach(face =>{
+	faces.push([[face,face,face],[face,face,face],[face,face,face]])
+	});
+
+var solved = JSON.stringify(faces);
+
+//console.log(f)
+
+var location2d = {"red":[0,0],"blue":[0,1],"white":[1,0],"green":[0,-1],"yellow":[-1,0],"orange":[0,2]};
+//var transforms = {"red":  }
+
+draw();
+
+function transform(face,dir){
+	console.log(face,dir)
+	var lastFaces = JSON.parse(JSON.stringify(faces))
+	transforms[face].forEach(tf => {
+		if(dir){
+			var last = absToXYC(tf[0]);
+			var next = absToXYC(tf[1]);
+		}
+		else{
+			var last = absToXYC(tf[1]);
+			var next = absToXYC(tf[0]);
+		} 
+		faces[next.C][next.X][next.Y] = lastFaces[last.C][last.X][last.Y]
+		//console.log(last,next,lastFaces[last.C][last.X][last.Y])
+	});
+	draw();
+}
+
+function absToXYC(abs)
+{
+	var x = (abs % 9) % 3;
+	var y = ((abs - x) % 9)/3;
+	var c = (abs - x - y*3)/9;
+	return {X:x,Y:y,C:c}
+}
+
+function runProg()
+{
+	var prog = document.getElementById("program").value
+	prog.split(",").forEach(c => {
+		Object.keys(f).forEach(C => {
+			if(C.toUpperCase().startsWith(c.toUpperCase()))
+				{
+					transform(C,true);				
+				} 
+		});
+	});	
+}
+
+function draw() {
+
+const scale = 10
+svg.innerHTML = ""
+
+faces.forEach(face =>{
+	fc = face[1][1]
+	var loc = [scale*3*location2d[fc][0],scale*3*location2d[fc][1]] 
+	//console.log(fc);
+for(var x=0;x<3;x++){
+	for(var y=0;y<3;y++){
+		var xcoord = loc[0]+scale *(x-1);
+		var ycoord = loc[1]+scale *(y-1)
+		svg.innerHTML += `<rect id="${f[fc]*9+x+y*3}" x="${xcoord}" y="${ycoord}" width="8" height="8" style="fill:${face[x][y]}" rx="1" ry="1"/>`
+		//svg.innerHTML += `<text x="${xcoord}" y="${ycoord+7}" class="txt">${f[fc]*9+x+y*3}</text>`
+		}
+	}
+});
+
+console.log("done");
+}
+</script>
+</html>
